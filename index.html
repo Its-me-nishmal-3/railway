@@ -10,9 +10,11 @@
   <script>
     const API_KEY = 'AIzaSyDUJHXpoW0cU2zD3ddpGBRsnmCXLWpsOAg';
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-    
-    const trainNumber = '16608'; // Change to desired train number here
-    
+
+    // Get train number from URL query param ?train=12345
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainNumber = urlParams.get('train') || '16608';
+
     const prompt = `When the user inputs train number ${trainNumber}, return only JSON with train_number, train_name, and live_status, no extra text. Use IST time.`;
 
     fetch(API_URL, {
@@ -24,8 +26,16 @@
     })
     .then(res => res.json())
     .then(data => {
-      const jsonText = data?.candidates?.[0]?.content || JSON.stringify(data, null, 2);
-      document.getElementById('output').textContent = jsonText;
+      // Gemini response text is usually a string inside candidates[0].content
+      const text = data?.candidates?.[0]?.content || JSON.stringify(data, null, 2);
+      try {
+        // Try parsing to pretty-print JSON if possible
+        const parsed = JSON.parse(text);
+        document.getElementById('output').textContent = JSON.stringify(parsed, null, 2);
+      } catch {
+        // If parsing fails, print raw text
+        document.getElementById('output').textContent = text;
+      }
     })
     .catch(e => {
       document.getElementById('output').textContent = 'Error: ' + e.message;
