@@ -15,7 +15,20 @@
     const urlParams = new URLSearchParams(window.location.search);
     const trainNumber = urlParams.get('train') || '16608';
 
-    const prompt = `When the user inputs train number ${trainNumber}, return only JSON with train_number, train_name, and live_status, no extra text. Use IST time.`;
+    const prompt = `
+You are a factual assistant. When given train number ${trainNumber}, search Google ONLY for up-to-date official train name and live running status. 
+Do NOT guess, assume, or predict anything.
+Return strictly this JSON format ONLY:
+
+{
+  "train_number": "<train_number>",
+  "train_name": "<official_train_name>",
+  "live_status": "<live_running_status_summary>"
+}
+
+Do not add any explanations or extra text.
+Use IST time format where applicable.
+`;
 
     fetch(API_URL, {
       method: 'POST',
