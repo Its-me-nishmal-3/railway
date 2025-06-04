@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>Train Status JSON</title></head>
+<body>
+  <input id="trainInput" placeholder="Enter train number" />
+  <button id="fetchBtn">Get Status</button>
+  <pre id="output"></pre>
+
+  <script>
+    const API_KEY = 'AIzaSyDUJHXpoW0cU2zD3ddpGBRsnmCXLWpsOAg';
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+    document.getElementById('fetchBtn').onclick = () => {
+      const trainNumber = document.getElementById('trainInput').value.trim();
+      if(!trainNumber) {
+        alert('Enter train number');
+        return;
+      }
+
+      const prompt = `When the user inputs train number ${trainNumber}, return only JSON with train_number, train_name, and live_status, no extra text. Use IST time.`;
+
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const jsonText = data?.candidates?.[0]?.content || JSON.stringify(data, null, 2);
+        document.getElementById('output').textContent = jsonText;
+      })
+      .catch(e => {
+        document.getElementById('output').textContent = 'Error: ' + e.message;
+      });
+    };
+  </script>
+</body>
+</html>
