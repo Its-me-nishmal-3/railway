@@ -26,16 +26,24 @@
     })
     .then(res => res.json())
     .then(data => {
-      // Gemini response text is usually a string inside candidates[0].content
-      const text = data?.candidates?.[0]?.content || JSON.stringify(data, null, 2);
-      try {
-        // Try parsing to pretty-print JSON if possible
-        const parsed = JSON.parse(text);
-        document.getElementById('output').textContent = JSON.stringify(parsed, null, 2);
-      } catch {
-        // If parsing fails, print raw text
-        document.getElementById('output').textContent = text;
+      let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data, null, 2);
+
+      // Extract JSON inside ```json ... ``` code block using regex
+      const match = text.match(/```json\s*([\s\S]*?)\s*```/i);
+      if (match) {
+        try {
+          const json = JSON.parse(match[1]);
+          document.getElementById('output').textContent = JSON.stringify(json, null, 2);
+          return;
+        } catch(e) {
+          // JSON parse failed, fallback to raw text
+          document.getElementById('output').textContent = match[1];
+          return;
+        }
       }
+
+      // If no markdown block, just show raw text
+      document.getElementById('output').textContent = text;
     })
     .catch(e => {
       document.getElementById('output').textContent = 'Error: ' + e.message;
